@@ -8,7 +8,11 @@ RUN apk add --no-cache \
     gcc \
     musl-dev \
     mariadb-connector-c-dev \
-    pkgconfig
+    pkgconfig \
+    openldap-dev \
+    python3-dev \
+    build-base \
+    openssl-dev
 
 RUN set -ex \
     && pip install --no-cache-dir --disable-pip-version-check -r requirements.txt \

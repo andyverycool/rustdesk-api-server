@@ -9,8 +9,11 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
+
 import os
 from pathlib import Path
+import ldap
+from django_auth_ldap.config import LDAPSearch, NestedGroupOfNamesType
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,80 +21,84 @@ if "CSRF_TRUSTED_ORIGINS" in os.environ:
     CSRF_TRUSTED_ORIGINS = [os.environ["CSRF_TRUSTED_ORIGINS"]]
 else:
     CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:21114"]
-    SECURE_CROSS_ORIGIN_OPENER_POLICY = 'None'
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = "None"
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", 'j%7yjvygpih=6b%qf!q%&ixpn+27dngzdu-i3xh-^3xgy3^nnc')
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY", "j%7yjvygpih=6b%qf!q%&ixpn+27dngzdu-i3xh-^3xgy3^nnc"
+)
 # ID服务器IP或域名，一般与中继服务器，用于web client
-ID_SERVER = os.environ.get("ID_SERVER", '')
+ID_SERVER = os.environ.get("ID_SERVER", "")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", False)
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 ALLOWED_HOSTS = ["*"]
-AUTH_USER_MODEL = 'api.UserProfile'      # AppName.自定义user
+AUTH_USER_MODEL = "api.UserProfile"  # AppName.自定义user
 
-ALLOW_REGISTRATION = os.environ.get("ALLOW_REGISTRATION", "True")          # 是否允许注册, True为允许，False为不允许
-ALLOW_REGISTRATION = True if ALLOW_REGISTRATION.lower() == 'true' else False
+ALLOW_REGISTRATION = os.environ.get(
+    "ALLOW_REGISTRATION", "True"
+)  # 是否允许注册, True为允许，False为不允许
+ALLOW_REGISTRATION = True if ALLOW_REGISTRATION.lower() == "true" else False
 
 
 # ==========数据库配置 开始=====================
-DATABASE_TYPE = os.environ.get("DATABASE_TYPE", 'SQLITE')
-MYSQL_DBNAME = os.environ.get("MYSQL_DBNAME", '-')
-MYSQL_HOST = os.environ.get("MYSQL_HOST", '127.0.0.1')
-MYSQL_USER = os.environ.get("MYSQL_USER", '-')
-MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", '-')
-MYSQL_PORT = os.environ.get("MYSQL_PORT", '3306')
+DATABASE_TYPE = os.environ.get("DATABASE_TYPE", "SQLITE")
+MYSQL_DBNAME = os.environ.get("MYSQL_DBNAME", "-")
+MYSQL_HOST = os.environ.get("MYSQL_HOST", "127.0.0.1")
+MYSQL_USER = os.environ.get("MYSQL_USER", "-")
+MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "-")
+MYSQL_PORT = os.environ.get("MYSQL_PORT", "3306")
 # ==========数据库配置 结束=====================
 
-LANGUAGE_CODE = os.environ.get("LANGUAGE_CODE", 'zh-hans')
+LANGUAGE_CODE = os.environ.get("LANGUAGE_CODE", "zh-hans")
 # #LANGUAGE_CODE = os.environ.get("LANGUAGE_CODE", 'en')
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'api',
-    'webui',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "api",
+    "webui",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "django.middleware.common.CommonMiddleware",
     # 'django.middleware.csrf.CsrfViewMiddleware',   # 取消post的验证。
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'rustdesk_server_api.urls'
+ROOT_URLCONF = "rustdesk_server_api.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'api.util.settings',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "api.util.settings",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'rustdesk_server_api.wsgi.application'
+WSGI_APPLICATION = "rustdesk_server_api.wsgi.application"
 
 
 # Database
@@ -99,22 +106,27 @@ WSGI_APPLICATION = 'rustdesk_server_api.wsgi.application'
 
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db/db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db/db.sqlite3",
     }
 }
-if DATABASE_TYPE == 'MYSQL' and MYSQL_DBNAME != '-' and MYSQL_USER != '-' and MYSQL_PASSWORD != '-':
+if (
+    DATABASE_TYPE == "MYSQL"
+    and MYSQL_DBNAME != "-"
+    and MYSQL_USER != "-"
+    and MYSQL_PASSWORD != "-"
+):
     # 简单通过数据库名、账密信息过滤下，防止用户未配置mysql却使用mysql
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': MYSQL_DBNAME,               # 数据库名
-            'HOST': MYSQL_HOST,                 # 数据库服务器IP
-            'USER': MYSQL_USER,                 # 数据库用户名
-            'PASSWORD': MYSQL_PASSWORD,         # 数据库密码
-            'PORT': MYSQL_PORT,                 # 端口
-            'OPTIONS': {'charset': 'utf8'},
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": MYSQL_DBNAME,  # 数据库名
+            "HOST": MYSQL_HOST,  # 数据库服务器IP
+            "USER": MYSQL_USER,  # 数据库用户名
+            "PASSWORD": MYSQL_PASSWORD,  # 数据库密码
+            "PORT": MYSQL_PORT,  # 端口
+            "OPTIONS": {"charset": "utf8"},
         }
     }
 
@@ -123,16 +135,16 @@ if DATABASE_TYPE == 'MYSQL' and MYSQL_DBNAME != '-' and MYSQL_USER != '-' and MY
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -142,7 +154,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'Asia/Shanghai'
+TIME_ZONE = "Asia/Shanghai"
 
 USE_I18N = True
 
@@ -155,20 +167,69 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
 
 if DEBUG:
-    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 else:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')     # 新增
+    STATIC_ROOT = os.path.join(BASE_DIR, "static")  # 新增
 
 LANGUAGES = (
-    ('zh-hans', '中文简体'),
-    ('en', 'English'),
-
+    ("zh-hans", "中文简体"),
+    ("en", "English"),
 )
 
-LOCALE_PATHS = (
-    os.path.join(BASE_DIR, 'locale'),
+LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
+
+# LDAP Authentication
+AUTH_LDAP_SERVER_URI = os.getenv("AUTH_LDAP_SERVER_URI", "ldap://localhost")
+
+# The following LDAP settings can be configured via environment variables
+AUTH_LDAP_BIND_DN = os.getenv("AUTH_LDAP_BIND_DN", "")
+AUTH_LDAP_BIND_PASSWORD = os.getenv("AUTH_LDAP_BIND_PASSWORD", "")
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    os.getenv("AUTH_LDAP_USER_SEARCH_BASE", "ou=users,dc=example,dc=com"),
+    ldap.SCOPE_SUBTREE,
+    os.getenv("AUTH_LDAP_USER_SEARCH_FILTER", "(uid=%(user)s)"),
 )
+
+AUTH_LDAP_USER_DN_TEMPLATE = os.getenv(
+    "AUTH_LDAP_USER_DN_TEMPLATE", "uid=%(user)s,ou=users,dc=example,dc=com"
+)
+
+# User attributes
+AUTH_LDAP_USER_ATTR_MAP = {
+    "username": "uid",
+    "email": "mail",
+    "first_name": "givenName",
+    "last_name": "sn",
+}
+
+# Group settings
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
+    os.getenv("AUTH_LDAP_GROUP_SEARCH_BASE", "ou=groups,dc=example,dc=com"),
+    ldap.SCOPE_SUBTREE,
+    "(objectClass=group)",
+)
+AUTH_LDAP_GROUP_TYPE = NestedGroupOfNamesType()
+
+AUTH_LDAP_MIRROR_GROUPS = True
+
+# Group mappings
+AUTH_LDAP_USER_FLAGS_BY_GROUP = {
+    # "is_staff": os.getenv(
+    #     "AUTH_LDAP_STAFF_GROUP", "cn=staff,ou=groups,dc=example,dc=com"
+    # ),
+    # "is_superuser": os.getenv(
+    #     "AUTH_LDAP_SUPERUSER_GROUP", "cn=superuser,ou=groups,dc=example,dc=com"
+    # ),
+}
+
+AUTH_LDAP_FIND_GROUP_PERMS = True
+
+# Authentication backends
+AUTHENTICATION_BACKENDS = [
+    "django_auth_ldap.backend.LDAPBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
